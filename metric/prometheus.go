@@ -66,6 +66,12 @@ func NewCounter(namespace, subsystem, name, metric string,
 			namespace, subsystem, name, metric, err)
 		return nil
 	}
+	
+	// Additional check for valid metric name using the ValidMetricName function
+	if !ValidMetricName(metricName) {
+		log.Errorf("[%s] invalid metric name: %s", module, metricName)
+		return nil
+	}
 
 	if m, find := counterMap[metricName]; find {
 		log.Debugf("[%s] Counter <%s> already created!", module, metricName)

@@ -107,7 +107,13 @@ func (c *NotifyConfig) addSign(webhookURL string, secret string) string {
 		h := hmac.New(sha256.New, []byte(secret))
 		h.Write([]byte(stringToSign))
 		sign := url.QueryEscape(base64.StdEncoding.EncodeToString(h.Sum(nil)))
-		webhook = fmt.Sprint(webhookURL, "&timestamp=", timestamp, "&sign="+sign)
+		
+		// Check if URL already has query parameters
+		separator := "?"
+		if parsedURL, err := url.Parse(webhookURL); err == nil && parsedURL.RawQuery != "" {
+			separator = "&"
+		}
+		webhook = fmt.Sprint(webhookURL, separator, "timestamp=", timestamp, "&sign=", sign)
 	}
 	log.Debugf("[%s / %s] - Dingtalk webhook: %s", c.Kind(), c.Name(), webhook)
 	return webhook

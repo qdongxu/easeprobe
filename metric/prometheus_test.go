@@ -124,6 +124,18 @@ func TestDuplicateName(t *testing.T) {
 }
 
 func TestInvalidName(t *testing.T) {
+	// Create a new registry to avoid conflicts
+	registry := prometheus.NewRegistry()
+	oldDefaultRegisterer := prometheus.DefaultRegisterer
+	prometheus.DefaultRegisterer = registry
+	
+	// Clear any existing metrics to avoid conflicts
+	counterMap = make(map[string]*prometheus.CounterVec)
+	gaugeMap = make(map[string]*prometheus.GaugeVec)
+	
+	defer func() {
+		prometheus.DefaultRegisterer = oldDefaultRegisterer
+	}()
 
 	//label errors
 	counter := NewCounter("namespace", "subsystem", "counter", "metric",

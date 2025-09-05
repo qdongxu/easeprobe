@@ -54,14 +54,23 @@ func TestEaseProbe(t *testing.T) {
 //
 //	"go.testFlags": ["-gcflags=-l"],
 func TestEaseProbeFail(t *testing.T) {
+	// Save original easeProbe and restore after test
+	originalEaseProbe := easeProbe
+	defer func() {
+		easeProbe = originalEaseProbe
+	}()
+	
+	// Reset the global easeProbe variable to nil to force re-initialization
+	easeProbe = nil
+	
 	monkey.Patch(os.Hostname, func() (string, error) {
 		return "", fmt.Errorf("error")
 	})
+	defer monkey.Unpatch(os.Hostname)
+	
 	InitEaseProbe("test", "icon")
 	e := GetEaseProbe()
 	assert.Equal(t, "unknown", e.Host)
-
-	monkey.Unpatch(os.Hostname)
 }
 
 func TestEaseProbeTime(t *testing.T) {

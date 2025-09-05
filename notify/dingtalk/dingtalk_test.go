@@ -88,6 +88,7 @@ func TestDingTalk(t *testing.T) {
 	})
 	err = conf.SendDingtalkNotification("title", "message")
 	assertError(t, err, "read error", false)
+	monkey.Unpatch(io.ReadAll)
 
 	// bad http do
 	monkey.PatchInstanceMethod(reflect.TypeOf(client), "Do", func(_ *http.Client, req *http.Request) (*http.Response, error) {
@@ -97,6 +98,13 @@ func TestDingTalk(t *testing.T) {
 	assertError(t, err, "http do error", false)
 
 	// bad http.NewRequest
+	monkey.PatchInstanceMethod(reflect.TypeOf(client), "Do", func(_ *http.Client, req *http.Request) (*http.Response, error) {
+		r := io.NopCloser(strings.NewReader(`{"errmsg": "ok", "errcode": 0}`))
+		return &http.Response{
+			StatusCode: 200,
+			Body:       r,
+		}, nil
+	})
 	monkey.Patch(http.NewRequest, func(method, url string, body io.Reader) (*http.Request, error) {
 		return nil, errors.New("http.NewRequest error")
 	})
